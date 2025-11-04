@@ -7,7 +7,7 @@
             "id": "34c52fed-8ec2-447f-9c62-2a884ffea234",
             "actions": [
                 {
-                    "name": "FIre",
+                    "name": "Attack",
                     "type": "Button",
                     "id": "311f4f04-6e8a-4e03-819e-be92a97d7bf7",
                     "expectedControlType": "",
@@ -33,7 +33,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": ";Keyboard",
-                    "action": "FIre",
+                    "action": "Attack",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
