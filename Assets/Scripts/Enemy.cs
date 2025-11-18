@@ -2,24 +2,39 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
-    public int health;
+    [Header("Enemy Stats")]
+    [SerializeField] private float maxHealth = 50f;
+    private float currentHealth;
+    
     public float speed;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    private void Start()
     {
-        
+        currentHealth = maxHealth;
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        
+ 
     }
 
-    public void TakeDamage(int damage)
+    public void TakeDamage(float damage, GameObject attacker = null)
     {
-        health -= damage;
-        Debug.Log("damage taken by ENEMY");
+        currentHealth -= damage;
+        Debug.Log($"Damage taken by {gameObject.name}: {damage}. Health: {currentHealth}/{maxHealth}");
+
+        if (currentHealth <= 0)
+        {
+            Die();
+        }
     }
+
+    private void Die()
+    {
+        Debug.Log($"{gameObject.name} has died.");
+        Destroy(gameObject);
+    }
+
+    public float CurrentHealth => currentHealth;
+    public float MaxHealth => maxHealth;
 }

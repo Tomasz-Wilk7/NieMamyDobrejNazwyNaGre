@@ -1,77 +1,264 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class AttackScript : MonoBehaviour
 {
+    [Header("Configuration")]
+    [SerializeField] private CombatConfigSO combatConfig;
+    [SerializeField] private CharacterStatsSO characterStats;
+    [SerializeField]private AttackPointConfigSO attackPointConfig;
 
-    private float timeBtwAttack;
-    public float startTimeBtwAttack;
+    private float currentHealth;
 
+    
+
+
+    private bool canAttack = true;
+    private int currentComboIndex = 0;
+    private float lastAttackTime = 0.0f;
+    private float lastComboTime = 0.0f;
+
+    private bool canParry = true;
+    private bool isParrying = false;
+    private float parryStartTime;
+
+
+    private PlayerInput playerInput;
     private InputAction attackAction;
+    private InputAction parryAction;
 
-    public Transform attackPos;
-    public LayerMask whatIsEnemies;
-    public float attackRange;
-
-    public int damage;
+    public System.Action<int> OnAttackPerformed;
+    public System.Action<float> OnHealthChanged;
+    public System.Action OnParryPerformed;
+    public System.Action OnDeath;
+    public System.Action OnParrySuccess;
+    public System.Action OnParryFail;
+    public System.Action<bool> OnParryStateChanged;
 
     private void Awake()
     {
-        var playerInput = GetComponent<PlayerInput>();
-        attackAction = playerInput.actions.FindAction("Attack");
-    }
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
+        playerInput = GetComponent<PlayerInput>();
         
-    }
+        if (playerInput != null)
+        {
+            attackAction = playerInput.actions["Attack"];
+            parryAction = playerInput.actions["Parry"];
+        }
 
-    // Update is called once per frame
-    void Update()
-    {
-        timeBtwAttack -= Time.deltaTime;
+        currentHealth = characterStats.MaxHealth;
     }
 
     private void OnEnable()
     {
-        attackAction.performed += OnAttackPerformed;
-        attackAction.Enable();
+        if (attackAction != null)
+        {
+            attackAction.performed += OnAttack;
+        }
+        if (parryAction != null)
+        {
+            parryAction.performed += OnParryPressed;
+        }
     }
 
     private void OnDisable()
     {
-        attackAction.performed -= OnAttackPerformed;
-        attackAction.Disable();
+        if (attackAction != null)
+        {
+            attackAction.performed -= OnAttack;
+        }
+        if (parryAction != null)
+        {
+            parryAction.performed -= OnParryPressed;
+        }
     }
 
-    private void OnAttackPerformed(InputAction.CallbackContext context)
+    private void OnAttack(InputAction.CallbackContext context)
     {
-        if (timeBtwAttack <= 0)
+        if (!canAttack || isParrying) return;
+
+        Debug.Log($"Attack Triggered");
+        PerformAttack();
+    }
+
+    // Public method for Unity Events/Animation Events
+    public void OnAttack()
+    {
+        if (!canAttack || isParrying) return;
+
+        Debug.Log($"Attack Triggered (Public)");
+        PerformAttack();
+    }
+
+    private void PerformAttack()
+    {
+        canAttack = false;
+        lastAttackTime = Time.time;
+        lastComboTime = Time.time;
+
+        OnAttackPerformed?.Invoke(currentComboIndex);
+
+        Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(
+            attackPointConfig.attackPoint.position,
+            combatConfig.AttackRange,
+            combatConfig.EnemyLayer
+        );
+
+        foreach (Collider2D enemy in hitEnemies)
         {
-            timeBtwAttack = startTimeBtwAttack;
-            Debug.Log("Attack performed");
-            Attack();
+            // Try to damage entities with AttackScript (players or advanced enemies)
+            if (enemy.TryGetComponent<AttackScript>(out var enemyCombat))
+            {
+                enemyCombat.TakeDamage(combatConfig.AttackDamage, gameObject);
+            }
+            // Try to damage basic enemies with Enemy component
+            else if (enemy.TryGetComponent<Enemy>(out var basicEnemy))
+            {
+                basicEnemy.TakeDamage(combatConfig.AttackDamage, gameObject);
+            }
+        }
+
+        currentComboIndex = (currentComboIndex + 1) % combatConfig.MaxComboCount;
+
+        Invoke(nameof(ResetAttack), combatConfig.AttackCooldown);
+
+        Debug.Log($"Attack: {currentComboIndex}! Hit: {hitEnemies.Length} enemies");
+    }
+
+    private void ResetAttack()
+    {
+        canAttack = true;
+    }
+
+    private void Update()
+    {
+        // Check parry window timeout
+        if (isParrying && Time.time - parryStartTime > combatConfig.ParryWindow)
+        {
+            EndParry(false);
+        }
+
+        // Check combo reset timeout
+        if (currentComboIndex > 0 && Time.time - lastComboTime > combatConfig.ComboResetTime)
+        {
+            currentComboIndex = 0;
+            Debug.Log("Combo reset!");
+        }
+    }
+
+    private void OnParryPressed(InputAction.CallbackContext context)
+    {
+        if (!canParry) return;
+        StartParry();
+    }
+
+    // Public method for Unity Events/Animation Events
+    public void OnParry()
+    {
+        if (!canParry) return;
+        StartParry();
+    }
+
+    private void StartParry()
+    {
+        isParrying = true;
+        canParry = false;
+        parryStartTime = Time.time;
+
+        OnParryStateChanged?.Invoke(true);
+        Debug.Log("Parry active!");
+    }
+
+    private void EndParry(bool wasSuccessful)
+    {
+        isParrying = false;
+        OnParryStateChanged?.Invoke(false);
+
+        if (wasSuccessful)
+        {
+            OnParrySuccess?.Invoke();
+            Debug.Log("Parry successful!");
+            Invoke(nameof(ResetParry), combatConfig.ParryCooldown * 0.5f);
         }
         else
         {
-            Debug.Log("On cd");
+            OnParryFail?.Invoke();
+            Debug.Log("Parry failed!");
+            Invoke(nameof(ResetParry), combatConfig.ParryCooldown);
         }
     }
 
-    private void Attack()
+    private void ResetParry()
     {
-        Collider2D[] enemiesToDamage = Physics2D.OverlapCircleAll(attackPos.position, attackRange, whatIsEnemies);
-        for (int i = 0; i < enemiesToDamage.Length; i++)
+        canParry = true;
+    }
+
+    public void TakeDamage(float damage, GameObject attacker = null)
+    {
+        if (currentHealth <= 0) return;
+
+        if (isParrying){
+
+            EndParry(true);
+
+            if (attacker != null && attacker.TryGetComponent<AttackScript>(out var attackerCombat))
+            {
+                attackerCombat.GetStunned(combatConfig.ParryStunDuration);
+            }
+            return;
+        }
+
+        currentHealth -= damage;
+        currentHealth = Mathf.Max(currentHealth, 0);
+
+        OnHealthChanged?.Invoke(currentHealth);
+
+        Debug.Log($"{gameObject.name} took {damage}. Health: {currentHealth}/{characterStats.MaxHealth}");
+
+        if (currentHealth <= 0)
         {
-            enemiesToDamage[i].GetComponent<Enemy>().TakeDamage(damage);
+            Die();
         }
     }
+
+    public void GetStunned(float duration)
+    {
+        StartCoroutine(StunCoroutine(duration));
+    }
+
+    private IEnumerator StunCoroutine(float duration)
+    {
+        canAttack = false;
+        canParry = false;
+
+        Debug.Log($"{gameObject.name} is stunned!");
+
+        yield return new WaitForSeconds(duration);
+
+        canAttack = true;
+        canParry = true;
+
+        Debug.Log($"{gameObject.name} recovered!");
+    }
+
+    private void Die()
+    {
+        Debug.Log($"{gameObject.name} has died.");
+        OnDeath?.Invoke();
+
+        enabled = false;
+    }
+
+    public float CurrentHealth => currentHealth;
+    public float MaxHealth => characterStats.MaxHealth;
+    public int ComboIndex => currentComboIndex;
 
     private void OnDrawGizmosSelected()
     {
+        if (attackPointConfig.attackPoint == null) return;
+
         Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(attackPos.position, attackRange);
+        Gizmos.DrawWireSphere(attackPointConfig.attackPoint.position, combatConfig.AttackRange);
     }
 }
