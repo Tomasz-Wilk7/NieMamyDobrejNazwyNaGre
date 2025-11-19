@@ -8,10 +8,9 @@ public class AttackScript : MonoBehaviour
     [Header("Configuration")]
     [SerializeField] private CombatConfigSO combatConfig;
     [SerializeField] private CharacterStatsSO characterStats;
-    [SerializeField]private AttackPointConfigSO attackPointConfig;
+    [SerializeField] private Transform attackPoint;
 
     private float currentHealth;
-
     
 
 
@@ -74,7 +73,7 @@ public class AttackScript : MonoBehaviour
         }
     }
 
-    private void OnAttack(InputAction.CallbackContext context)
+    internal void OnAttack(InputAction.CallbackContext context)
     {
         if (!canAttack || isParrying) return;
 
@@ -100,7 +99,7 @@ public class AttackScript : MonoBehaviour
         OnAttackPerformed?.Invoke(currentComboIndex);
 
         Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(
-            attackPointConfig.attackPoint.position,
+            attackPoint.position,
             combatConfig.AttackRange,
             combatConfig.EnemyLayer
         );
@@ -256,9 +255,9 @@ public class AttackScript : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        if (attackPointConfig.attackPoint == null) return;
+        if (attackPoint == null) return;
 
         Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(attackPointConfig.attackPoint.position, combatConfig.AttackRange);
+        Gizmos.DrawWireSphere(attackPoint.position, combatConfig.AttackRange);
     }
 }
