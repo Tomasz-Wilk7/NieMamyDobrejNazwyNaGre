@@ -56,6 +56,7 @@ public class EnemyRangedAI : MonoBehaviour
                 if (projComponent != null)
                 {
                     projComponent.OnSpawned();
+                    Debug.Log("Fired projectile at player.");
                 }
             }
         }

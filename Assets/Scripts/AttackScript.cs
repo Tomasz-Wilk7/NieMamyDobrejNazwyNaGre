@@ -245,8 +245,7 @@ public class AttackScript : MonoBehaviour
     {
         Debug.Log($"{gameObject.name} has died.");
         OnDeath?.Invoke();
-
-        enabled = false;
+        Destroy(gameObject);
     }
 
     public float CurrentHealth => currentHealth;
