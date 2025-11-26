@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 1506633523850185824}
   - component: {fileID: 2060638916023669869}
   - component: {fileID: 8561108346239095323}
+  - component: {fileID: 7353344445978107773}
   m_Layer: 6
   m_Name: EnemyMeele
   m_TagString: Untagged
@@ -195,11 +196,28 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyMeleeAI
   playerTarget: {fileID: 0}
+  autoFindPlayer: 1
   attackRange: 1.2
   attackDamage: 10
   attackCooldown: 1
   attackPoint: {fileID: 2996424425800370496}
   stopDistanceBuffer: 0.2
+  useRigidbodyMovement: 1
+--- !u!114 &7353344445978107773
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6146674122367506634}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec3dea066271949398dbc8aedcaf379b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WorldHealthBar
+  healthFillImage: {fileID: 0}
+  targetAttackScript: {fileID: 0}
+  offset: {x: 0, y: 2, z: 0}
 --- !u!1 &9193336832983610375
 GameObject:
   m_ObjectHideFlags: 0

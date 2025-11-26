@@ -45,6 +45,7 @@ GameObject:
   - component: {fileID: 8690496050039673418}
   - component: {fileID: 7464488287414605691}
   - component: {fileID: 3430948498670203968}
+  - component: {fileID: -4907821479113492289}
   m_Layer: 6
   m_Name: EnemyRanged
   m_TagString: Untagged
@@ -230,3 +231,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Enemy
   maxHealth: 50
   speed: 0
+--- !u!114 &-4907821479113492289
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6591240147339370754}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec3dea066271949398dbc8aedcaf379b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WorldHealthBar
+  healthFillImage: {fileID: 0}
+  targetAttackScript: {fileID: 0}
+  offset: {x: 0, y: 2, z: 0}
