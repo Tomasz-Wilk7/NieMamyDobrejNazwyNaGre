@@ -11,8 +11,6 @@ public class PlayerController2D : MonoBehaviour
     private Vector2 _moveDirection;
 
     public InputActionReference move;
-    public InputActionReference fire;
-
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -29,20 +27,5 @@ public class PlayerController2D : MonoBehaviour
     private void FixedUpdate()
     {
         rb.linearVelocity = new Vector2(_moveDirection.x * moveSpeed, _moveDirection.y * moveSpeed);
-    }
-
-    private void OnEnable()
-    {
-        fire.action.started += Fire;
-    }
-
-    private void OnDisable()
-    {
-        fire.action.started -= Fire;
-    }
-
-    private void Fire(InputAction.CallbackContext obj)
-    {
-        Debug.Log("Fired");
     }
 }
