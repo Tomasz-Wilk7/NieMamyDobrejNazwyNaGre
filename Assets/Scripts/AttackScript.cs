@@ -73,7 +73,7 @@ public class AttackScript : MonoBehaviour
         }
     }
 
-    internal void OnAttack(InputAction.CallbackContext context)
+    private void OnAttack(InputAction.CallbackContext context)
     {
         if (!canAttack || isParrying) return;
 
